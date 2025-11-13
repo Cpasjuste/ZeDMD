@@ -464,7 +464,7 @@ bool AcquireNextProcessingBuffer() {
   return false;
 }
 
-// #define ZEDMD_CLIENT_DEBUG_FPS
+//#define ZEDMD_CLIENT_DEBUG_FPS
 #ifdef ZEDMD_CLIENT_DEBUG_FPS
 Clock fpsClock;
 uint16_t frames = 0;
@@ -503,6 +503,10 @@ void Render() {
         }
       }
     }
+
+#ifdef PICO_RP2350
+    display->Flip();
+#endif
 
     lastRenderBuffer = currentRenderBuffer;
     currentRenderBuffer = (currentRenderBuffer + 1) % NUM_RENDER_BUFFERS;

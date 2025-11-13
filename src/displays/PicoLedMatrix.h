@@ -16,7 +16,11 @@ class PicoLedMatrix final : public LedMatrix {
   void ClearScreen() override;
   void SetBrightness(uint8_t level) override;
 
+  void Flip() override;
+
  private:
+  pimoroni::Pixel *fb;
+
   uint8_t color_order[6] = {
       static_cast<uint8_t>(pimoroni::Hub75::COLOR_ORDER::RGB),
       static_cast<uint8_t>(pimoroni::Hub75::COLOR_ORDER::BRG),

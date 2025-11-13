@@ -66,8 +66,11 @@ PicoLedMatrix::PicoLedMatrix() {
   // rgb565 > rgb888 "fast" pixel conversion
   init_rgb_tables();
 
+  // allocate offscreen framebuffer
+  fb = new pimoroni::Pixel[TOTAL_WIDTH * TOTAL_HEIGHT];
+
   s_hub75 = new pimoroni::Hub75(
-      TOTAL_WIDTH, PANEL_HEIGHT, nullptr, pimoroni::PANEL_FM6126A, false,
+      TOTAL_WIDTH, TOTAL_HEIGHT, nullptr, pimoroni::PANEL_FM6126A, false,
       static_cast<pimoroni::Hub75::COLOR_ORDER>(color_order[rgbMode]),
       lut_table);
   s_hub75->start(dma_complete);
@@ -81,13 +84,38 @@ PicoLedMatrix::~PicoLedMatrix() {
 void IRAM_ATTR PicoLedMatrix::DrawPixel(const uint16_t x, const uint16_t y,
                                         const uint8_t r, const uint8_t g,
                                         const uint8_t b) {
-  s_hub75->set_pixel(x, y + yOffset, r, g, b);
+  int offset = 0;
+  uint16_t _y = y;
+  if(x >= TOTAL_WIDTH || _y >= TOTAL_HEIGHT) return;
+  if(_y >= TOTAL_HEIGHT / 2) {
+    _y -= TOTAL_HEIGHT / 2;
+    offset = (_y * TOTAL_WIDTH + x) * 2;
+    offset += 1;
+  } else {
+    offset = (_y * TOTAL_WIDTH + x) * 2;
+  }
+  fb[offset] =
+    (lut_table[b] << s_hub75->b_shift)
+    | (lut_table[g] << s_hub75->g_shift)
+    | (lut_table[r] << s_hub75->r_shift);
 }
 
 void IRAM_ATTR PicoLedMatrix::DrawPixel(const uint16_t x, const uint16_t y,
                                         const uint16_t color) {
-  s_hub75->set_pixel(x, y + yOffset, r5_to_8[(color >> 11) & 0x1F],
-                     g6_to_8[(color >> 5) & 0x3F], b5_to_8[color & 0x1F]);
+  int offset = 0;
+  uint16_t _y = y;
+  if(x >= TOTAL_WIDTH || _y >= TOTAL_HEIGHT) return;
+  if(_y >= TOTAL_HEIGHT / 2) {
+    _y -= TOTAL_HEIGHT / 2;
+    offset = (_y * TOTAL_WIDTH + x) * 2;
+    offset += 1;
+  } else {
+    offset = (_y * TOTAL_WIDTH + x) * 2;
+  }
+  fb[offset] =
+    (lut_table[b5_to_8[color & 0x1F]] << s_hub75->b_shift)
+    | (lut_table[g6_to_8[(color >> 5) & 0x3F]] << s_hub75->g_shift)
+    | (lut_table[r5_to_8[(color >> 11) & 0x1F]] << s_hub75->r_shift);
 }
 
 void PicoLedMatrix::ClearScreen() { s_hub75->clear(); }
@@ -96,6 +124,10 @@ void PicoLedMatrix::SetBrightness(const uint8_t level) {
   // TODO: verify this (compare with an "esp board") ?
   const auto b = static_cast<uint8_t>(static_cast<float>(level) * 1.5f);
   s_hub75->brightness = b;
+}
+
+void PicoLedMatrix::Flip() {
+  memcpy(s_hub75->back_buffer, fb, TOTAL_WIDTH * TOTAL_HEIGHT * 4);
 }
 
 #endif  // PICO_BUILD
