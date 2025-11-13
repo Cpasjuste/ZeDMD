@@ -118,7 +118,9 @@ void IRAM_ATTR PicoLedMatrix::DrawPixel(const uint16_t x, const uint16_t y,
     | (lut_table[r5_to_8[(color >> 11) & 0x1F]] << s_hub75->r_shift);
 }
 
-void PicoLedMatrix::ClearScreen() { s_hub75->clear(); }
+void PicoLedMatrix::ClearScreen() {
+  memset(fb, 0, TOTAL_WIDTH * TOTAL_HEIGHT * 4);
+}
 
 void PicoLedMatrix::SetBrightness(const uint8_t level) {
   // TODO: verify this (compare with an "esp board") ?
