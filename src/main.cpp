@@ -1315,6 +1315,9 @@ void setup() {
     RefreshSetupScreen();
     display->DisplayText("Exit", TOTAL_WIDTH - (7 * (TOTAL_WIDTH / 128)) - 16,
                          (TOTAL_HEIGHT / 2) + 4, 255, 191, 0);
+#ifdef PICO_RP2350
+    display->Flip();
+#endif
 
     const auto forwardButton = new Bounce2::Button();
     forwardButton->attach(FORWARD_BUTTON_PIN, INPUT_PULLUP);
@@ -1414,6 +1417,9 @@ void setup() {
           }
 #endif
         }
+#ifdef PICO_RP2350
+        display->Flip();
+#endif
       }
 
       upButton->update();
@@ -1526,6 +1532,9 @@ void setup() {
           }
 #endif
         }
+#ifdef PICO_RP2350
+        display->Flip();
+#endif
       }
 
       delay(1);
@@ -1632,6 +1641,10 @@ void loop() {
                            throbberColors[1], throbberColors[2]);
         break;
     }
+
+#ifdef PICO_RP2350
+    display->Flip();
+#endif
 
     transportWaitCounter = (transportWaitCounter + 1) % 8;
 

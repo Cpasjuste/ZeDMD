@@ -19,6 +19,8 @@ class PicoLedMatrix final : public LedMatrix {
   void Flip() override;
 
  private:
+  static uint16_t GetOffset(uint16_t x, uint16_t y);
+
   pimoroni::Pixel *fb;
 
   uint8_t color_order[6] = {
